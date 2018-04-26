@@ -1,5 +1,6 @@
 class Api::V1::ProductsController < ApplicationController
   skip_before_action :verify_authenticity_token
+  before_action :basic_auth
 
   def index
     products = Product.all
@@ -27,8 +28,16 @@ class Api::V1::ProductsController < ApplicationController
 
     head :no_content
   end
+  def basic_auth
+  authenticate_or_request_with_http_basic do |username, token|
+    user = User.find_by_email(username)
+    if user.auth_token == token
+      sign_in user
+    end
+  end
   private
   def products_params
     params.require(:product).permit(:name , :price)
   end
+
 end
